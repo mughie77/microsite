@@ -307,3 +307,40 @@ input:focus {
     text-align: center;
     word-break: break-all;
 }
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    body {
+        padding: 20px 10px;
+    }
+
+    .container {
+        padding: 20px 15px;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    h2 {
+        font-size: 1.5em;
+    }
+
+    .menu-item-fields {
+        grid-template-columns: 1fr; /* Stack fields on top of each other */
+        gap: 10px;
+    }
+
+    .menu-item-fields .form-group[style*="grid-column"] {
+        grid-column: auto !important; /* Reset the column span */
+    }
+
+    .icon-picker-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .icon-picker-container .btn {
+        margin-top: 5px;
+    }
+}
