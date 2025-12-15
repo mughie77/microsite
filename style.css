@@ -22,6 +22,8 @@ header {
     border-radius: 15px;
     border: 1px solid #00faff;
     box-shadow: 0 0 25px rgba(0, 250, 255, 0.5);
+    width: 90vw;
+    max-width: 680px;
 }
 
 h1 {
@@ -35,27 +37,30 @@ nav ul {
     padding: 0;
     margin: 0;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
 }
 
 nav ul li {
-    margin: 0 15px;
+    margin: 10px 0;
+    width: 100%;
 }
 
 nav ul li a {
     color: #fff;
     text-decoration: none;
     font-size: 1.2em;
-    padding: 10px 20px;
-    border: 1px solid transparent;
-    border-radius: 5px;
+    padding: 15px 20px;
+    border: 1px solid #00faff;
+    border-radius: 10px;
     transition: all 0.3s ease;
+    display: block;
+    background: rgba(0, 0, 0, 0.5);
 }
 
 nav ul li a:hover {
-    border-color: #00faff;
-    background: rgba(0, 250, 255, 0.1);
-    box-shadow: 0 0 15px rgba(0, 250, 255, 0.3);
+    background: rgba(0, 250, 255, 0.2);
+    box-shadow: 0 0 20px rgba(0, 250, 255, 0.5);
 }
 
 .modal {
