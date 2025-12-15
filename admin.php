@@ -1,14 +1,18 @@
 <?php
 session_start();
 
-// --- Hardcoded Password ---
-$password = 'admin123';
+// --- Load Admin Password Securely ---
+if (file_exists('admin_config.php')) {
+    $password = require 'admin_config.php';
+} else {
+    $password = 'default_password_change_me';
+}
 
 // --- Login Logic ---
 if (isset($_POST['password'])) {
     if ($_POST['password'] === $password) {
         $_SESSION['loggedin'] = true;
-        header('Location: admin.php'); // Redirect after successful login
+        header('Location: admin.php');
         exit;
     } else {
         $login_error = 'Password salah!';
@@ -22,11 +26,11 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-// --- Save Logic ---
-// Process only if logged in and form is submitted with expected data
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true && isset($_POST['title'])) {
+// --- Config File Path ---
+$configFile = 'config.json';
 
-    // Rebuild the config array from POST data
+// --- Save Logic ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true && isset($_POST['title'])) {
     $new_config = [];
     $new_config['title'] = $_POST['title'] ?? '';
     $new_config['background'] = $_POST['background'] ?? '';
@@ -34,14 +38,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['loggedin']) && $_S
 
     if (isset($_POST['menu']) && is_array($_POST['menu'])) {
         foreach ($_POST['menu'] as $menu_item_data) {
+            if (empty($menu_item_data['text'])) {
+                continue;
+            }
             $item = [];
             $item['text'] = $menu_item_data['text'] ?? '';
             $item['icon'] = $menu_item_data['icon'] ?? '';
-            $item['type'] = $menu_item_data['type'] ?? '';
+            $item['type'] = $menu_item_data['type'] ?? 'link';
 
-            // Only include url or content based on type
             if ($item['type'] === 'link') {
-                $item['url'] = $menu_item_data['url'] ?? '';
+                $item['url'] = $menu_item_data['url'] ?? '#';
             } elseif ($item['type'] === 'modal') {
                 $item['content'] = $menu_item_data['content'] ?? '';
             }
@@ -49,22 +55,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['loggedin']) && $_S
         }
     }
 
-    // Generate the PHP code string using var_export for safe output
-    $config_string = "<?php\n\nreturn " . var_export($new_config, true) . ";\n";
-
-    // Save to config.php
-    file_put_contents('config.php', $config_string);
-
-    // Redirect to prevent form resubmission
+    file_put_contents($configFile, json_encode($new_config, JSON_PRETTY_PRINT));
     header('Location: admin.php?saved=true');
     exit;
 }
 
+// --- Load Config ---
+if (file_exists($configFile)) {
+    $config = json_decode(file_get_contents($configFile), true);
+} else {
+    // Default config if file doesn't exist
+    $config = [
+        'title' => 'My Microsite',
+        'background' => 'images/background.jpg',
+        'menu' => []
+    ];
+}
 
-// --- Include Config ---
-// This now loads the potentially updated config
-$config = require 'config.php';
-
+$icons = require 'icons.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -73,147 +81,230 @@ $config = require 'config.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        .success-message {
-            background-color: #00ffcc;
-            color: #0a0a1a;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        body {
-            font-family: 'Orbitron', sans-serif;
-            background-color: #0a0a1a;
-            color: #00ffcc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .container {
-            width: 100%;
-            max-width: 800px;
-            background-color: #1a1a2a;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 0 25px rgba(0, 255, 204, 0.5);
-            border: 1px solid #00ffcc;
-        }
-        h1, h2 {
-            text-align: center;
-            text-shadow: 0 0 10px #00ffcc;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="text"], input[type="password"] {
-            padding: 10px;
-            border: 1px solid #00ffcc;
-            background-color: #0a0a1a;
-            color: #00ffcc;
-            border-radius: 5px;
-            font-family: inherit;
-        }
-        input[type="submit"] {
-            margin-top: 20px;
-            padding: 12px;
-            background-color: #00ffcc;
-            color: #0a0a1a;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: bold;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-        }
-        input[type="submit"]:hover {
-            box-shadow: 0 0 15px #00ffcc;
-        }
-        .error {
-            color: #ff4d4d;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .logout {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .logout a {
-            color: #00ffcc;
-            text-decoration: none;
-        }
-        .menu-item {
-            border: 1px dashed #00ffcc;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="admin_style.css">
 </head>
 <body>
     <div class="container">
         <h1>Admin Dashboard</h1>
         <?php if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true): ?>
-            <h2>Login</h2>
-            <form method="POST" action="admin.php">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                <input type="submit" value="Login">
-                <?php if (isset($login_error)): ?>
-                    <p class="error"><?php echo htmlspecialchars($login_error); ?></p>
-                <?php endif; ?>
-            </form>
+            <div class="login-form">
+                <h2>Login</h2>
+                <form method="POST" action="admin.php">
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <?php if (isset($login_error)): ?>
+                        <p class="error"><?php echo htmlspecialchars($login_error); ?></p>
+                    <?php endif; ?>
+                </form>
+            </div>
         <?php else: ?>
-            <h2>Site Configuration</h2>
-            <?php if (isset($_GET['saved'])): ?>
-                <div class="success-message">Configuration saved successfully!</div>
-            <?php endif; ?>
             <form method="POST" action="admin.php">
-                <label for="title">Site Title:</label>
-                <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($config['title']); ?>">
+                <?php if (isset($_GET['saved'])): ?>
+                    <div class="success-message">Configuration saved successfully!</div>
+                <?php endif; ?>
 
-                <label for="background">Background Image Path:</label>
-                <input type="text" id="background" name="background" value="<?php echo htmlspecialchars($config['background']); ?>">
+                <div class="site-settings">
+                    <h2>Site Settings</h2>
+                    <div class="form-group">
+                        <label for="title">Site Title:</label>
+                        <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($config['title']); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="background">Background Image Path:</label>
+                        <input type="text" id="background" name="background" value="<?php echo htmlspecialchars($config['background']); ?>">
+                    </div>
+                </div>
 
                 <h2>Menu Items</h2>
-                <?php foreach ($config['menu'] as $index => $item): ?>
-                    <div class="menu-item">
-                        <h3>Menu Item <?php echo $index + 1; ?></h3>
-                        <label for="menu_text_<?php echo $index; ?>">Text:</label>
-                        <input type="text" id="menu_text_<?php echo $index; ?>" name="menu[<?php echo $index; ?>][text]" value="<?php echo htmlspecialchars($item['text']); ?>">
+                <div id="menu-items-container">
+                    <?php foreach ($config['menu'] as $index => $item): ?>
+                        <div class="menu-item" data-index="<?php echo $index; ?>">
+                            <div class="menu-item-header">
+                                <h3>Menu Item <?php echo $index + 1; ?></h3>
+                                <button type="button" class="btn btn-danger remove-menu-item">Remove</button>
+                            </div>
+                            <div class="menu-item-fields">
+                                <div class="form-group">
+                                    <label>Text:</label>
+                                    <input type="text" name="menu[<?php echo $index; ?>][text]" value="<?php echo htmlspecialchars($item['text']); ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label>Icon:</label>
+                                    <div class="icon-picker-container">
+                                        <input type="text" name="menu[<?php echo $index; ?>][icon]" value="<?php echo htmlspecialchars($item['icon'] ?? ''); ?>" readonly class="icon-input">
+                                        <button type="button" class="btn btn-secondary select-icon-btn">Select Icon</button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Type (link/modal):</label>
+                                    <input type="text" name="menu[<?php echo $index; ?>][type]" value="<?php echo htmlspecialchars($item['type']); ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label>URL (for type 'link'):</label>
+                                    <input type="text" name="menu[<?php echo $index; ?>][url]" value="<?php echo htmlspecialchars($item['url'] ?? ''); ?>">
+                                </div>
+                                <div class="form-group" style="grid-column: span 2;">
+                                    <label>Content (for type 'modal'):</label>
+                                    <input type="text" name="menu[<?php echo $index; ?>][content]" value="<?php echo htmlspecialchars($item['content'] ?? ''); ?>">
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
 
-                        <label for="menu_icon_<?php echo $index; ?>">Icon (Font Awesome Class):</label>
-                        <input type="text" id="menu_icon_<?php echo $index; ?>" name="menu[<?php echo $index; ?>][icon]" value="<?php echo htmlspecialchars($item['icon'] ?? ''); ?>">
-
-                        <label for="menu_type_<?php echo $index; ?>">Type (link/modal):</label>
-                        <input type="text" id="menu_type_<?php echo $index; ?>" name="menu[<?php echo $index; ?>][type]" value="<?php echo htmlspecialchars($item['type']); ?>">
-
-                        <label for="menu_url_<?php echo $index; ?>">URL (for type 'link'):</label>
-                        <input type="text" id="menu_url_<?php echo $index; ?>" name="menu[<?php echo $index; ?>][url]" value="<?php echo htmlspecialchars($item['url'] ?? ''); ?>">
-
-                        <label for="menu_content_<?php echo $index; ?>">Content (for type 'modal'):</label>
-                        <input type="text" id="menu_content_<?php echo $index; ?>" name="menu[<?php echo $index; ?>][content]" value="<?php echo htmlspecialchars($item['content'] ?? ''); ?>">
-                    </div>
-                <?php endforeach; ?>
-
-                <input type="submit" value="Save Configuration">
+                <button type="button" id="add-menu-item" class="btn btn-secondary" style="margin-top: 20px;">Add New Menu Item</button>
+                <button type="submit" class="btn btn-primary">Save Configuration</button>
             </form>
             <div class="logout">
                 <a href="?logout=true">Logout</a>
             </div>
         <?php endif; ?>
     </div>
+
+    <!-- Icon Picker Modal -->
+    <div id="icon-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Select an Icon</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="icon-search" placeholder="Search for icons...">
+                <div id="icon-grid">
+                    <?php foreach($icons as $icon): ?>
+                        <div class="icon-preview" data-icon-class="<?php echo $icon; ?>">
+                            <i class="<?php echo $icon; ?>"></i>
+                            <span><?php echo $icon; ?></span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const menuContainer = document.getElementById('menu-items-container');
+        const addButton = document.getElementById('add-menu-item');
+
+        const updateIndexes = () => {
+            const items = menuContainer.querySelectorAll('.menu-item');
+            items.forEach((item, index) => {
+                item.dataset.index = index;
+                const header = item.querySelector('h3');
+                if (header) header.textContent = `Menu Item ${index + 1}`;
+
+                const inputs = item.querySelectorAll('input');
+                inputs.forEach(input => {
+                    const name = input.getAttribute('name');
+                    if (name) input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+                });
+            });
+        };
+
+        addButton.addEventListener('click', () => {
+            const newIndex = menuContainer.querySelectorAll('.menu-item').length;
+            const newItem = document.createElement('div');
+            newItem.className = 'menu-item';
+            newItem.dataset.index = newIndex;
+
+            newItem.innerHTML = `
+                <div class="menu-item-header">
+                    <h3>Menu Item ${newIndex + 1}</h3>
+                    <button type="button" class="btn btn-danger remove-menu-item">Remove</button>
+                </div>
+                <div class="menu-item-fields">
+                    <div class="form-group">
+                        <label>Text:</label>
+                        <input type="text" name="menu[${newIndex}][text]" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>Icon:</label>
+                        <div class="icon-picker-container">
+                            <input type="text" name="menu[${newIndex}][icon]" value="" readonly class="icon-input">
+                            <button type="button" class="btn btn-secondary select-icon-btn">Select Icon</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Type (link/modal):</label>
+                        <input type="text" name="menu[${newIndex}][type]" value="link">
+                    </div>
+                    <div class="form-group">
+                        <label>URL (for type 'link'):</label>
+                        <input type="text" name="menu[${newIndex}][url]" value="#">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Content (for type 'modal'):</label>
+                        <input type="text" name="menu[${newIndex}][content]" value="">
+                    </div>
+                </div>
+            `;
+            menuContainer.appendChild(newItem);
+            updateIndexes();
+        });
+
+        menuContainer.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-menu-item')) {
+                e.target.closest('.menu-item').remove();
+                updateIndexes();
+            }
+        });
+
+        const modal = document.getElementById('icon-modal');
+        const closeModalBtn = modal.querySelector('.close-modal');
+        const iconGrid = modal.querySelector('#icon-grid');
+        const iconSearch = modal.querySelector('#icon-search');
+        let currentTargetInput = null;
+
+        document.querySelector('body').addEventListener('click', function(e) {
+            if (e.target.classList.contains('select-icon-btn')) {
+                currentTargetInput = e.target.previousElementSibling;
+                modal.style.display = 'block';
+                iconSearch.focus();
+            }
+        });
+
+        const closeModal = () => {
+            modal.style.display = 'none';
+        }
+
+        closeModalBtn.addEventListener('click', closeModal);
+        window.addEventListener('click', (event) => {
+            if (event.target == modal) {
+                closeModal();
+            }
+        });
+
+        iconGrid.addEventListener('click', (e) => {
+            const iconPreview = e.target.closest('.icon-preview');
+            if (iconPreview) {
+                const iconClass = iconPreview.dataset.iconClass;
+                if (currentTargetInput) {
+                    currentTargetInput.value = iconClass;
+                }
+                closeModal();
+            }
+        });
+
+        iconSearch.addEventListener('keyup', () => {
+            const filter = iconSearch.value.toLowerCase();
+            const icons = iconGrid.querySelectorAll('.icon-preview');
+            icons.forEach(iconDiv => {
+                const iconClass = iconDiv.dataset.iconClass.toLowerCase();
+                if (iconClass.includes(filter)) {
+                    iconDiv.style.display = '';
+                } else {
+                    iconDiv.style.display = 'none';
+                }
+            });
+        });
+
+        updateIndexes();
+    });
+    </script>
 </body>
 </html>

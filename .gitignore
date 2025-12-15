@@ -1,0 +1,9 @@
+# Ignore sensitive admin configuration
+admin_config.php
+
+# Ignore local server logs
+php_server.log
+
+# Ignore verification scripts and screenshots
+/verification/
+/home/jules/verification/

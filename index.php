@@ -1,5 +1,16 @@
 <?php
-$config = include('config.php');
+// --- Load Config from JSON ---
+$configFile = 'config.json';
+if (file_exists($configFile)) {
+    $config = json_decode(file_get_contents($configFile), true);
+} else {
+    // Fallback if config is missing
+    $config = [
+        'title' => 'Microsite Not Configured',
+        'background' => '',
+        'menu' => []
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
