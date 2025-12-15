@@ -1,0 +1,12 @@
+<?php
+
+// Konfigurasi Kata Sandi Admin
+// ----------------------------
+// Untuk mengatur kata sandi admin Anda, ikuti langkah-langkah berikut:
+// 1. Buka 'hash_password.php' di browser Anda.
+// 2. Masukkan kata sandi yang Anda inginkan dan klik "Generate Hash".
+// 3. Salin string hash yang dihasilkan.
+// 4. Tempel string hash di bawah ini, ganti 'YOUR_HASHED_PASSWORD_HERE'.
+// 5. Ganti nama file ini dari 'admin_config.php.example' menjadi 'admin_config.php'.
+
+return 'YOUR_HASHED_PASSWORD_HERE';

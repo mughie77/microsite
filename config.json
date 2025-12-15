@@ -1,7 +1,8 @@
 {
     "title": "Microsite Keren Saya",
-    "profile_picture": "images\/test_profile.jpg",
-    "background": "images\/test_background.jpg",
+    "profile_picture": "",
+    "background": "",
+    "theme": "style.css",
     "colors": {
         "background": "#1a0033",
         "accent": "#ff33cc"
