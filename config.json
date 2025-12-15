@@ -1,24 +1,32 @@
 {
-    "background": "images\/background.jpg",
     "title": "Microsite Keren Saya",
+    "profile_picture": "images\/test_profile.jpg",
+    "background": "images\/test_background.jpg",
+    "colors": {
+        "background": "#1a0033",
+        "accent": "#ff33cc"
+    },
     "menu": [
         {
-            "type": "link",
             "text": "Beranda",
-            "url": "#",
-            "icon": "fa-solid fa-house"
-        },
-        {
-            "type": "modal",
-            "text": "Tentang",
-            "content": "Ini adalah jendela modal dengan beberapa informasi tentang microsite.",
-            "icon": "fa-solid fa-circle-info"
-        },
-        {
+            "icon": "fa-solid fa-house",
             "type": "link",
-            "text": "Kontak",
             "url": "#",
-            "icon": "fa-solid fa-envelope"
+            "content": ""
+        },
+        {
+            "text": "Tentang",
+            "icon": "fa-solid fa-circle-info",
+            "type": "modal",
+            "url": "",
+            "content": "Ini adalah jendela modal dengan beberapa informasi tentang microsite."
+        },
+        {
+            "text": "Kontak",
+            "icon": "fa-solid fa-envelope",
+            "type": "link",
+            "url": "#",
+            "content": ""
         }
     ]
 }

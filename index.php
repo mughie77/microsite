@@ -20,10 +20,19 @@ if (file_exists($configFile)) {
     <title><?php echo htmlspecialchars($config['title']); ?></title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --background-color: <?php echo htmlspecialchars($config['colors']['background'] ?? '#000'); ?>;
+            --accent-color: <?php echo htmlspecialchars($config['colors']['accent'] ?? '#00faff'); ?>;
+        }
+    </style>
 </head>
 <body style="background-image: url('<?php echo htmlspecialchars($config['background']); ?>');">
 
     <header>
+        <?php if (!empty($config['profile_picture'])): ?>
+            <img src="<?php echo htmlspecialchars($config['profile_picture']); ?>" alt="Profile Picture" class="profile-picture">
+        <?php endif; ?>
         <h1><?php echo htmlspecialchars($config['title']); ?></h1>
         <nav>
             <ul>

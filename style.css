@@ -1,9 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
+:root {
+    --background-color: #000;
+    --accent-color: #00faff;
+    --text-color: #fff;
+}
+
 body {
     margin: 0;
     font-family: 'Orbitron', sans-serif;
-    color: #fff;
+    color: var(--text-color);
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -13,23 +19,36 @@ body {
     justify-content: center;
     min-height: 100vh;
     text-align: center;
-    background-color: #000;
+    background-color: var(--background-color);
 }
 
 header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     background: rgba(0, 0, 0, 0.7);
     padding: 20px 40px;
     border-radius: 15px;
-    border: 1px solid #00faff;
-    box-shadow: 0 0 25px rgba(0, 250, 255, 0.5);
+    border: 1px solid var(--accent-color);
+    box-shadow: 0 0 25px rgba(0, 250, 255, 0.5); /* This glow will be harder to theme, leave as is for now */
     width: 90vw;
     max-width: 680px;
+}
+
+.profile-picture {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-color);
+    box-shadow: 0 0 15px var(--accent-color);
+    object-fit: cover;
+    margin-bottom: 20px;
 }
 
 h1 {
     font-size: 3em;
     margin-bottom: 20px;
-    text-shadow: 0 0 10px #00faff, 0 0 20px #00faff;
+    text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
 }
 
 nav ul {
@@ -47,11 +66,11 @@ nav ul li {
 }
 
 nav ul li a {
-    color: #fff;
+    color: var(--text-color);
     text-decoration: none;
     font-size: 1.2em;
     padding: 15px 20px;
-    border: 1px solid #00faff;
+    border: 1px solid var(--accent-color);
     border-radius: 10px;
     transition: all 0.3s ease;
     display: block;
@@ -59,13 +78,13 @@ nav ul li a {
 }
 
 nav ul li a:hover {
-    background: rgba(0, 250, 255, 0.2);
+    background: rgba(0, 250, 255, 0.2); /* Keep a fixed hover glow for simplicity */
     box-shadow: 0 0 20px rgba(0, 250, 255, 0.5);
 }
 
 nav ul li a i {
     margin-right: 10px;
-    width: 20px; /* Ensure icons have a consistent width */
+    width: 20px;
     text-align: center;
 }
 
@@ -85,7 +104,7 @@ nav ul li a i {
     background-color: #0d1a26;
     margin: 15% auto;
     padding: 20px;
-    border: 1px solid #00faff;
+    border: 1px solid var(--accent-color);
     width: 80%;
     max-width: 500px;
     border-radius: 10px;
@@ -103,7 +122,7 @@ nav ul li a i {
 
 .close-button:hover,
 .close-button:focus {
-    color: #fff;
+    color: var(--text-color);
     text-decoration: none;
     cursor: pointer;
 }
